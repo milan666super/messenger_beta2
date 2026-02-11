@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XAM Чат</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Общие стили для страницы */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #4CAF50;
+            margin-top: 50px;
+        }
+
+        .chat-container {
+            width: 80%;
+            max-width: 600px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            font-size: 1.5em;
+            text-align: center;
+        }
+
+        .messages {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            flex-grow: 1;
+            background-color: #f9f9f9;
+        }
+
+        .message {
+            background-color: #e3f2fd;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message .sender {
+            font-weight: bold;
+            color: #00796b;
+        }
+
+        .message .text {
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .message .time {
+            font-size: 0.8em;
+            color: #888;
+            align-self: flex-end;
+        }
+
+        .input-container {
+            display: flex;
+            padding: 15px;
+            background-color: #f1f1f1;
+            border-top: 1px solid #ddd;
+        }
+
+        .input-container input {
+            flex-grow: 1;
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .input-container button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        .input-container button:hover {
+            background-color: #45a049;
+        }
+
+        .chat-history-title {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        /* Стили для времени */
+        .time {
+            font-size: 0.8em;
+            color: #888;
+            text-align: right;
+            margin-top: 5px;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>XAM Чат</h1>
+    
+    <div class="chat-container">
+        <div class="chat-header">
+            История чата
+        </div>
+
+        <div class="messages" id="messages"></div>
+
+        <div class="input-container">
+            <input type="text" id="sender" placeholder="Ваше имя">
+            <input type="text" id="message" placeholder="Ваше сообщение">
+            <button onclick="sendMessage()">Отправить</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        // Устанавливаем соединение с сервером Socket.IO
+        var socket = io.connect('http://192.168.1.9:5001');
+
+        // Обработка входящих сообщений
+        socket.on('receive_message', function(data) {
+            var messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            
+            var senderElement = document.createElement('div');
+            senderElement.classList.add('sender');
+            senderElement.textContent = data.sender;
+            
+            var messageText = document.createElement('div');
+            messageText.classList.add('text');
+            messageText.textContent = data.message;
+            
+            var timeElement = document.createElement('div');
+            timeElement.classList.add('time');
+            var date = new Date();
+            timeElement.textContent = date.toLocaleTimeString(); // Время отправки сообщения
+
+            messageElement.appendChild(senderElement);
+            messageElement.appendChild(messageText);
+            messageElement.appendChild(timeElement);
+
+            document.getElementById('messages').appendChild(messageElement);
+        });
+
+        // Отправка сообщения
+        function sendMessage() {
+            var sender = document.getElementById('sender').value;
+            var message = document.getElementById('message').value;
+
+            if (sender && message) {
+                socket.emit('send_message', { sender: sender, message: message });
+                document.getElementById('message').value = ''; // Очистка поля ввода
+            }
+        }
+    </script>
+</body>
+</html>
